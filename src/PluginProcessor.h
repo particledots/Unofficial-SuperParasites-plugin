@@ -2,6 +2,7 @@
 #include <atomic>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "SuperParasitesEngine.h"
+#include "OutputStage.h"
 
 class SuperParasitesAudioProcessor : public juce::AudioProcessor
 {
@@ -41,6 +42,7 @@ private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
     SuperParasitesEngine engine;
+    OutputStage::Stage outputStage;
     std::vector<float> scratchL, scratchR, inL, inR;
     std::atomic<bool> captureRequested { false };
     int lastMidiNote = 60;
