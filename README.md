@@ -86,6 +86,8 @@ Switching Mode (to or from Spectral, Spectral clouds, Oliverb or Resonestor) or 
 
 ## Verified and not verified
 
+**Output Level (version 0.2.0): every step passed on the macOS runner, run 39056541692, commit `9cf851c`** (all earlier tests, the four new level steps, the universal arm64 + x86_64 AU and VST3 build, signing, packaging). I can see each step's pass / fail, not its log text. Artifact `SuperParasites-macOS`.
+
 **Output Level (version 0.2.0) - measured and tested here (Linux, g++, October 2026), not listened to**
 * `tests/level_test.cpp`: 10,477 checks, 0 failed. Fully dry (Dry/Wet = 0) at the default Output Level, engine + stage output equals the input level within 0.1 dB in each of the six dry-path modes, at 44.1 / 48 / 96 kHz
   host, every quality the plug-in has, input -18 dBFS (and -6 dBFS at 48 kHz); worst deviation 0.064 dB. The limiter: identity up to its threshold, odd-symmetric, monotonic, slope 1 at the threshold,
