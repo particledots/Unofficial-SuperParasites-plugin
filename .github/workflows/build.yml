@@ -61,7 +61,7 @@ jobs:
              Copy "Unofficial SuperParasites.vst3"       to  ~/Library/Audio/Plug-Ins/VST3/
           4. In Logic: Settings > Plug-in Manager > rescan. Look for "particledots: Unofficial SuperParasites"
              (it is a MIDI-controlled effect: a MIDI note-on presses CAPTURE, a held note is GATE).
-          6. OUTPUT LEVEL (version 0.2.0): the firmware makes the output about 9 dB quieter than the input (with Dry/Wet at 0 in most modes). The new
+          5. OUTPUT LEVEL (version 0.2.0): the firmware makes the output about 9 dB quieter than the input (with Dry/Wet at 0 in most modes). The new
              OUTPUT LEVEL knob (default +9.03 dB) makes that up, followed by a soft limiter that keeps loud sounds from clipping. Presets made before
              0.2.0 have no Output Level and will come out about 9 dB louder: that is the fix, so lower the knob if you want the old level.
              Beat repeat and Resonestor have no dry path in the firmware, so Output Level does not make them match the input exactly.
