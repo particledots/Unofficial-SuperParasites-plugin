@@ -92,6 +92,20 @@ SuperParasitesEditor::SuperParasitesEditor (SuperParasitesAudioProcessor& p) : A
     addMenu (mode,    "mode",    "MODE",    { "Granular", "Pitch shifter / time stretch", "Looping delay", "Spectral madness",
                                               "Oliverb", "Resonestor", "Beat repeat", "Spectral clouds" });
     addMenu (quality, "quality", "QUALITY", { "Stereo, 16-bit", "Mono, 16-bit", "Stereo, 8-bit (low-fi)", "Mono, 8-bit (low-fi)" });
+    addMenu (pitchSnap, "pitch_snap", "PITCH SNAP", { "Off", "Steps", "Semitones" });
+    pitchSnap.box.setTooltip ("What the PITCH knob settles on. Steps = octaves and fifths (-24, -12, -7, 0, +7, +12, +24); Semitones = whole semitones. The readout shows the note that plays. Applies to the modes that shift pitch in semitones (not Beat repeat / Spectral clouds, where the knob is not a pitch).");
+    // The Pitch readout shows the note that actually plays: with Pitch Snap on, the snapped whole-semitone value.
+    pitch.slider.textFromValueFunction = [this] (double v)
+    {
+        const float st = SuperParasitesEngine::pitchPotToSemitones ((float) v);
+        const int mode = (int) proc.apvts.getRawParameterValue ("pitch_snap")->load();
+        if (mode == SuperParasitesEngine::SnapOff) return juce::String (st, 1);
+        const int n = (int) std::lround (SuperParasitesEngine::snapPitch (st, mode));
+        return n > 0 ? "+" + juce::String (n) : juce::String (n);
+    };
+    snapReadoutAtt = std::make_unique<juce::ParameterAttachment> (*proc.apvts.getParameter ("pitch_snap"),
+                                                                  [this] (float) { pitch.slider.updateText(); });
+    snapReadoutAtt->sendInitialUpdate();
 
     addAndMakeVisible (freeze);
     addAndMakeVisible (limiter);
@@ -228,5 +242,7 @@ void SuperParasitesEditor::resized()
     };
     placeMenu (mode,    24, 430);
     placeMenu (quality, 24 + halfW + 12, 430);
-    hint.setBounds (24, 482, W - 48, 62);
+    pitchSnap.label.setBounds (W - 24 - 150, 480, 150, 16);
+    pitchSnap.box.setBounds (W - 24 - 150, 498, 150, 26);
+    hint.setBounds (24, 482, W - 48 - 166, 62);
 }

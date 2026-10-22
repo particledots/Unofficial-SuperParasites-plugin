@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SuperParasitesPlugin VERSION 0.3.0)
+project(SuperParasitesPlugin VERSION 0.4.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -70,6 +70,10 @@ target_link_libraries(SuperParasites PRIVATE
 # --- Headless test of the DSP wrapper:  cmake --build build --target engine_test && build/engine_test ---
 add_executable(engine_test EXCLUDE_FROM_ALL src/engine_test.cpp)
 target_link_libraries(engine_test PRIVATE superparasites_core)
+
+# --- Pitch Snap tests (function, knob sweep, engine pitch, all modes):  cmake --build build --target pitch_snap_test && build/pitch_snap_test ---
+add_executable(pitch_snap_test EXCLUDE_FROM_ALL tests/pitch_snap_test.cpp)
+target_link_libraries(pitch_snap_test PRIVATE superparasites_core)
 
 # --- Level tests of the output stage (Output Level + soft limiter) ---
 #   cmake --build build --target level_test && build/level_test            (stage and engine, no JUCE)

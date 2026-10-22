@@ -47,13 +47,14 @@ private:
 
     Knob position, size, pitch, density, texture;
     Knob dryWet, spread, feedback, reverb, outputLevel;
-    Menu mode, quality;
+    Menu mode, quality, pitchSnap;
     juce::ToggleButton limiter { "LIMITER" };
     juce::ToggleButton freeze { "FREEZE" }, reverse { "REVERSE" }, gate { "GATE" }, pitchMidi { "PITCH FOLLOWS MIDI" };
     juce::TextButton capture { "CAPTURE" };
     juce::Label hint;
     std::unique_ptr<ButtonAtt> limiterAtt, freezeAtt, reverseAtt, gateAtt, pitchMidiAtt;
     std::unique_ptr<juce::ParameterAttachment> modeWatch;
+    std::unique_ptr<juce::ParameterAttachment> snapReadoutAtt;   // keeps the Pitch readout in step with the Pitch Snap menu
     void updateHint (int mode);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SuperParasitesEditor)
