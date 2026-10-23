@@ -6,7 +6,9 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
+#include <atomic>
 #include "Resampler.h"
+#include "WaveformPicture.h"
 
 namespace clouds { class GranularProcessor; }
 
@@ -35,6 +37,14 @@ public:
     SuperParasitesEngine();
     ~SuperParasitesEngine();
 
+    // ---- Waveform display ------------------------------------------------------------------------------------------
+    // A coarse picture of the recording buffer with the Position / Size markers (see WaveformPicture.h). It is only kept up to
+    // date while at least one editor has it open; the audio thread never waits for the editor, and the picture is read-only for
+    // the sound: with it on or off the output is the same sample for sample.
+    const WaveformPicture& waveform() const { return picture; }
+    void waveformViewerOpened() { viewers.fetch_add (1, std::memory_order_relaxed); }
+    void waveformViewerClosed() { viewers.fetch_sub (1, std::memory_order_relaxed); }
+
     void prepare (double hostSampleRate);
 
     // Press the module's CAPTURE button / fire its capture input once (seeds a grain, taps tempo, triggers a burst...).
@@ -59,6 +69,15 @@ private:
     struct Frame { float l, r; };
 
     void runBlocks (const Params& p);
+
+    // waveform display (audio thread writes the picture; see updateWaveform())
+    WaveformPicture picture;
+    std::atomic<int> viewers { 0 };
+    int scanCursor = 0, scanRing = -1, scanSinceHeld = 0, scanIdleTick = 0;
+    int32_t scanGeneration = -1;
+    bool scanLowFi = false;
+    const void* scanPtr = nullptr;
+    void updateWaveform();
 
     std::unique_ptr<clouds::GranularProcessor> proc;
     std::vector<uint64_t> largeBuf, smallBuf;   // the module's 118784-byte main block and 65408-byte CCM block

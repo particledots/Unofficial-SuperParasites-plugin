@@ -5,6 +5,27 @@ merged into one eight-mode module. This is the firmware that third-party modules
 against those. Not a Mutable Instruments product, and not made by or endorsed by any of the module makers.
 Don't contact Emilie Gillet or Mutable Instruments about it.
 
+## Waveform display with a Position marker (version 0.5.0)
+A new panel at the top of the window draws the **recording buffer** (loudest peak per column, oldest on the left, "now" on the right) and a **marker at the Position setting**:
+
+| Mode | Marker | Shaded band |
+|---|---|---|
+| Granular | where the grains start reading, as time back from now | the stretch one grain plays |
+| Pitch shifter / time stretch | how far back the window is read from | the window (it follows Size) |
+| Looping delay, running | the delay time (Size is not used) | none |
+| Looping delay, Frozen | where the loop begins | the loop (Size is its length) |
+| Beat repeat | where the loop starts inside the latched slice | the loop, with the slice outlined; changes take effect at the next slice |
+| Spectral madness, Spectral clouds, Resonestor | greyed out: these modes have no recording buffer | |
+| Oliverb | greyed out: Position is pre-delay there, not a place in a recording | |
+
+With **Freeze** the picture holds still (except in Beat repeat, which keeps recording while frozen, as the firmware does). The display only reads the sound memory
+on the audio thread, a little at a time, and only while a plug-in window is open; the sound is bit-for-bit the same with the window open or closed (tested).
+
+**Verified (Linux, headless; `tests/waveform_test.cpp`, run in the workflow):** where a burst of sound lands in the picture (many formats, rates, buffer lengths);
+Freeze; hidden modes; output identical with display open or closed; a reader thread hammering the picture while audio runs; and, with a gliding test tone as a time stamp,
+that the sound really comes from the marker (Pitch shifter, Looping delay: within a few ms) or from inside the band (Granular: grains have a lopsided window, so the heard centre sits inside the band).
+**Not verified:** how the panel looks and behaves in Logic (it is drawn by code that CI compiles but nobody has seen), and the AU on the Intel Mac.
+
 ## Pitch Snap (version 0.4.0)
 A new **PITCH SNAP** menu (parameter `pitch_snap`, to the right of the mode hint) settles the PITCH knob on musical notes, as in the Unofficial Spotykach and Unofficial Beads plug-ins:
 * **Off (the default)** is exactly the 0.3.0 sound: the module's own detented knob curve.
