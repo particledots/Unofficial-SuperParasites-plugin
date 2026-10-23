@@ -60,6 +60,10 @@ void GranularProcessor::Init(
 
   ResetFilters();
 
+  region_ptr_[0] = region_ptr_[1] = NULL;
+  region_bytes_[0] = region_bytes_[1] = 0;
+  samples_valid_ = false;
+  buffers_generation_ = 0;
   previous_playback_mode_ = PLAYBACK_MODE_LAST;
   reset_buffers_ = true;
   mute_in_ = false;
@@ -674,6 +678,12 @@ void GranularProcessor::Prepare() {
       workspace_size = buffer_size_[0] - buffer_size_[1];
       workspace = static_cast<uint8_t*>(buffer[0]) + buffer_size[0];
     }
+    // Waveform display: remember where the sample memory is (it is only audio in the modes that allocate AudioBuffers below).
+    samples_valid_ = false;
+    for (int32_t i = 0; i < 2; ++i) {
+      region_ptr_[i] = (i < num_channels_) ? buffer[i] : NULL;
+      region_bytes_[i] = (i < num_channels_) ? (buffer_size[i] & ~static_cast<size_t>(1)) : 0;
+    }
     float sr = sample_rate();
 
     BufferAllocator allocator(workspace, workspace_size);
@@ -729,7 +739,9 @@ void GranularProcessor::Prepare() {
       ws_player_.Init(&correlator_, num_channels_);
       looper_.Init(num_channels_);
       kammerl_.Init(num_channels_);
+      samples_valid_ = true;
     }
+    ++buffers_generation_;
     reset_buffers_ = false;
     previous_playback_mode_ = playback_mode_;
   }
@@ -745,6 +757,56 @@ void GranularProcessor::Prepare() {
       ws_player_.LoadCorrelator(buffer_16_);
     }
     correlator_.EvaluateSomeCandidates();
+  }
+}
+
+// ---- Unofficial SuperParasites Extended, waveform display ---------------------------------------------------------------
+
+bool GranularProcessor::sample_region(int32_t ch, void** data, size_t* bytes) const {
+  if (!samples_valid_ || ch < 0 || ch >= num_channels_ || region_ptr_[ch] == NULL) return false;
+  *data = region_ptr_[ch];
+  *bytes = region_bytes_[ch];
+  return true;
+}
+
+void GranularProcessor::GetPositionView(PositionView* v) const {
+  *v = PositionView();
+  if (reset_buffers_ || previous_playback_mode_ != playback_mode_ || !samples_valid_) {
+    v->hidden = VIEW_REBUILDING;
+    if (playback_mode_ == PLAYBACK_MODE_SPECTRAL || playback_mode_ == PLAYBACK_MODE_SPECTRAL_CLOUD ||
+        playback_mode_ == PLAYBACK_MODE_RESONESTOR) {
+      v->hidden = VIEW_NO_BUFFER;
+    }
+    return;
+  }
+  if (playback_mode_ == PLAYBACK_MODE_OLIVERB) {
+    v->hidden = VIEW_NOT_A_TIME;   // Position is the reverb's pre-delay here
+    return;
+  }
+  v->hidden = VIEW_SHOWN;
+  v->channels = num_channels_;
+  v->low_fi = low_fidelity_;
+  v->ring_frames = low_fidelity_ ? buffer_8_[0].size() : buffer_16_[0].size();
+  v->head = low_fidelity_ ? buffer_8_[0].head() : buffer_16_[0].head();
+  // The same rule as ProcessGranular(): is the incoming audio being written into the buffer right now?
+  const bool writing = !parameters_.freeze || playback_mode_ == PLAYBACK_MODE_KAMMERL;
+  v->writing = writing;
+  switch (playback_mode_) {
+    case PLAYBACK_MODE_GRANULAR:
+      player_.Describe(parameters_, v->ring_frames, v);
+      break;
+    case PLAYBACK_MODE_STRETCH:
+      ws_player_.Describe(v->ring_frames, v);
+      break;
+    case PLAYBACK_MODE_LOOPING_DELAY:
+      looper_.Describe(parameters_, v->ring_frames, v);
+      break;
+    case PLAYBACK_MODE_KAMMERL:
+      kammerl_.Describe(v->ring_frames, v->head, v);
+      break;
+    default:
+      v->hidden = VIEW_NO_BUFFER;
+      break;
   }
 }
 

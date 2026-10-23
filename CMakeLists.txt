@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SuperParasitesPlugin VERSION 0.4.0)
+project(SuperParasitesPlugin VERSION 0.5.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -70,6 +70,15 @@ target_link_libraries(SuperParasites PRIVATE
 # --- Headless test of the DSP wrapper:  cmake --build build --target engine_test && build/engine_test ---
 add_executable(engine_test EXCLUDE_FROM_ALL src/engine_test.cpp)
 target_link_libraries(engine_test PRIVATE superparasites_core)
+
+# --- Waveform display tests (mapping, placement, Freeze, hidden modes, bit-exact with display on/off, marker vs sound):
+#     cmake --build build --target waveform_test && build/waveform_test ---
+add_executable(waveform_test EXCLUDE_FROM_ALL tests/waveform_test.cpp)
+target_link_libraries(waveform_test PRIVATE superparasites_core)
+find_package(Threads)
+if(Threads_FOUND)
+  target_link_libraries(waveform_test PRIVATE Threads::Threads)
+endif()
 
 # --- Pitch Snap tests (function, knob sweep, engine pitch, all modes):  cmake --build build --target pitch_snap_test && build/pitch_snap_test ---
 add_executable(pitch_snap_test EXCLUDE_FROM_ALL tests/pitch_snap_test.cpp)

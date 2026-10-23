@@ -36,6 +36,12 @@ public:
     // The module's CAPTURE button / input: called by the editor's Capture button (MIDI note-ons also fire it).
     void requestCapture() { captureRequested.store (true); }
 
+    // Waveform display: the editor reads the picture the audio thread keeps (see WaveformPicture.h); the audio side only keeps the
+    // picture up to date while at least one editor has the display open.
+    const WaveformPicture& waveform() const { return engine.waveform(); }
+    void waveformViewerOpened() { engine.waveformViewerOpened(); }
+    void waveformViewerClosed() { engine.waveformViewerClosed(); }
+
     juce::AudioProcessorValueTreeState apvts;
 
 private:
